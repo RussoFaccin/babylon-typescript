@@ -43,6 +43,11 @@ export class MainScene extends BABYLON.Scene {
         this.loadMeshes();
     }
     private loadMeshes() {
+        const sceneRoot = {
+            crate: null,
+            ground: null,
+        };
+
         // Ground
         BABYLON.SceneLoader.ImportMesh(
             "",
@@ -67,15 +72,16 @@ export class MainScene extends BABYLON.Scene {
                     { mass: 0 },
                     this,
                 );
-                const meshRoot = new BABYLON.Mesh("", this);
-                meshRoot.physicsImpostor = new BABYLON.PhysicsImpostor(
-                    meshRoot,
+                const groundRoot = new BABYLON.Mesh("", this);
+                groundRoot.addChild(meshes[0]);
+                groundRoot.addChild(groundCollider);
+                sceneRoot.ground = groundRoot;
+                groundRoot.physicsImpostor = new BABYLON.PhysicsImpostor(
+                    groundRoot,
                     BABYLON.PhysicsImpostor.NoImpostor,
                     { mass: 0 },
                     this,
                 );
-                meshRoot.addChild(meshes[0]);
-                meshRoot.addChild(groundCollider);
             },
         );
         // Crate
@@ -114,6 +120,13 @@ export class MainScene extends BABYLON.Scene {
                     BABYLON.PhysicsImpostor.NoImpostor,
                     { mass: 3, restitution: 0.2 },
                     this,
+                );
+                // Collision Callback
+                crateRoot.physicsImpostor.registerOnPhysicsCollide(
+                    sceneRoot.ground.physicsImpostor,
+                    (coll, contact) => {
+                        crateRoot.dispose();
+                    },
                 );
             },
         );
